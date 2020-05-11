@@ -1,7 +1,7 @@
-import Ably from 'ably/browser/static/ably.noencryption';
+import { Realtime } from 'ably';
 import { roomId, ownId } from './ids';
 
-const ably = new Ably.Realtime('FPRzWg.K37Q-g:DIzMBDeHognMNLuU');
+const ably = new Realtime('FPRzWg.K37Q-g:DIzMBDeHognMNLuU');
 
 const roomChannel = ably.channels.get(roomId);
 

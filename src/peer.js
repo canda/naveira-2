@@ -14,6 +14,10 @@ window.peers = peers;
 // [{ method: string, callback: (data) => void }]
 const subscriptions = [];
 
+// List of messages used to be send to newcomers
+// [{ method: string, data: any }]
+const persistedMessages = [];
+
 export const subscribeToMethod = (method, callback) => {
   subscriptions.push({ method, callback });
 };
@@ -62,7 +66,7 @@ export const sendToPeer = (method, data, peerId) => {
     !peer.connection.connected
   ) {
     // removePeer(peer.id);
-    console.log('Peer connection unreachable', peer.id, peer.connection);
+    console.error('Peer connection unreachable', peer.id, peer.connection);
     return;
   }
 
@@ -89,7 +93,16 @@ const setupSubscriptionCallbacks = (peer) => {
     subscriptions
       .filter((subscription) => subscription.method === method)
       .forEach((subscription) => {
-        subscription.callback(data);
+        subscription.callback(
+          { payload: data, peerId: peer.id },
+          (answerMethod, answerPayload) =>
+            peer.connection.send(
+              JSON.stringify({
+                method: answerMethod,
+                data: answerPayload,
+              }),
+            ),
+        );
       });
   });
 
@@ -115,7 +128,7 @@ const setupSubscriptionCallbacks = (peer) => {
 setTimeout(() => {
   // Let everyone know I want to join the channel
   SocketChannel.sendToAllPeers('peer-joined', { id: ownId, roomId });
-}, 5000);
+}, 1000);
 
 // When someone wants to join the channel
 // we create a peer connection and send him the signalling data back
