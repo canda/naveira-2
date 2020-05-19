@@ -1,6 +1,6 @@
-import { subscribeToPeerOffset, syncWithPeer } from './syncedClock';
-import { sendToAllPeers, subscribeToMethod } from './peer';
-import { playAudioAtTime } from './music';
+import { subscribeToPeerOffset, syncWithPeer } from './syncedClock.js';
+import { sendToAllPeers, subscribeToMethod } from './peer.js';
+import { playAudioAtTime } from './music.js';
 
 let playingPeer;
 

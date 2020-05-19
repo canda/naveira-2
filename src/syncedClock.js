@@ -1,6 +1,5 @@
-import { mean } from 'simple-statistics';
-import { subscribeToMethod, sendToPeer } from './peer';
-import { createObservableValue } from './observable';
+import { subscribeToMethod, sendToPeer } from './peer.js';
+import { createObservableValue } from './observable.js';
 
 // { peerId: { value: observable, measurments: number[]} }
 const offsets = {};
@@ -41,7 +40,7 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
     offsets[peerId] = peerOffset;
   }
   peerOffset.measurments.push(calculatedOffset);
-  const newMean = mean(peerOffset.measurments);
+  const newMean = SimpleStatistics.mean(peerOffset.measurments);
   peerOffset.value.setValue(newMean);
 
   if (peerOffset.measurments.length > 100) {
@@ -51,7 +50,9 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
     peerOffset.filteredMeasurments = peerOffset.measurments.filter(
       (x) => newMean - allowedDeviation <= x && x <= newMean + allowedDeviation,
     );
-    peerOffset.value.setValue(mean(peerOffset.filteredMeasurments));
+    peerOffset.value.setValue(
+      SimpleStatistics.mean(peerOffset.filteredMeasurments),
+    );
   }
   if (peerOffset.measurments.length <= maxMeasurements) {
     setTimeout(

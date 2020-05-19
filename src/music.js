@@ -1,10 +1,6 @@
-import bufferToArrayBuffer from 'buffer-to-arraybuffer';
-
-const URL = 'music.mp3';
-
 const context = new AudioContext();
 
-let musicPromise = fetch(URL)
+const musicPromise = fetch('./music.mp3')
   .then((response) => response.arrayBuffer())
   .then((arrayBuffer) => context.decodeAudioData(arrayBuffer));
 
@@ -28,11 +24,4 @@ export const playAudioAtTime = (playTime) => {
   } else {
     source.start(0, (Date.now() - playTime) / 1000);
   }
-};
-
-export const setMusicBuffer = (buffer) => {
-  console.log('buffer', buffer);
-  musicPromise = Promise.resolve(
-    context.decodeAudioData(bufferToArrayBuffer(buffer)),
-  );
 };

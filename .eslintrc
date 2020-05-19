@@ -10,7 +10,8 @@
     "implicit-arrow-linebreak": "off",
     "function-paren-newline": "off",
     "operator-linebreak": "off",
-    "no-underscore-dangle": "off"
+    "no-underscore-dangle": "off",
+    "import/extensions": "off"
   },
   "parser": "babel-eslint",
   "parserOptions": {
@@ -22,7 +23,11 @@
   },
   "plugins": ["babel"],
   "globals": {
-    "fetch": false
+    "Ably": false,
+    "fetch": false,
+    "Peer": false,
+    "SimplePeer": false,
+    "SimpleStatistics": false
   },
   "env": {
     "browser": true

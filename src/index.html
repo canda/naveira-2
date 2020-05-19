@@ -4,10 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Naveira 2</title>
+    <script src="https://unpkg.com/ably@1.1.24/browser/static/ably.min.js"></script>
+    <script src="https://unpkg.com/simple-peer@9.7.2/simplepeer.min.js"></script>
+    <script src="https://unpkg.com/simple-statistics@7.1.0/dist/simple-statistics.min.js"></script>
+    <script>
+      window.SimpleStatistics = ss;
+    </script>
   </head>
   <body>
-    <audio id="audio" src="rick-roll.mp3"></audio>
     <button onclick="play()">play</button>
     <button onclick="sync()">sync</button>
+    <script type="module" src="./index.js"></script>
   </body>
 </html>

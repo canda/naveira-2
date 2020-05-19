@@ -1,10 +1,8 @@
-import Peer from 'simple-peer';
-
-import { ownId, roomId } from './ids';
-import * as SocketChannel from './socket';
+import { ownId, roomId } from './ids.js';
+import * as SocketChannel from './socket.js';
 
 // List of all the connected peers
-// [{ id: string, connection: {new Peer()} }]
+// [{ id: string, connection: {new SimplePeer()} }]
 const peers = [];
 
 window.peers = peers;
@@ -139,7 +137,7 @@ SocketChannel.subscribeToMethod('peer-joined', ({ id }) => {
 
   // TODO: make peer connection UDP
   // Create the peer connection instance
-  const connection = new Peer({
+  const connection = new SimplePeer({
     initiator: true,
     trickle: false,
   });
@@ -176,7 +174,7 @@ SocketChannel.subscribeToMethod('signal', ({ id, signalData }) => {
   let peer = peers.find((p) => p.id === id);
 
   if (!peer) {
-    const connection = new Peer({
+    const connection = new SimplePeer({
       initiator: false,
       trickle: false,
     });
