@@ -9,22 +9,25 @@ let musicPromise = fetch(URL)
   .then((arrayBuffer) => context.decodeAudioData(arrayBuffer));
 
 let source;
+let audioBuffer;
+musicPromise.then((music) => {
+  audioBuffer = music;
+});
+
 export const playAudioAtTime = (playTime) => {
   if (source) {
-    try {
-      source.stop();
-    } catch (e) {
-      console.error(e);
-    }
+    source.stop();
   }
 
-  musicPromise.then((audioBuffer) => {
-    source = context.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(context.destination);
+  source = context.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(context.destination);
 
+  if (playTime - Date.now() > 0) {
     source.start(context.currentTime + (playTime - Date.now()) / 1000);
-  });
+  } else {
+    source.start(0, (Date.now() - playTime) / 1000);
+  }
 };
 
 export const setMusicBuffer = (buffer) => {

@@ -9,7 +9,8 @@
     "no-console": "off",
     "implicit-arrow-linebreak": "off",
     "function-paren-newline": "off",
-    "operator-linebreak": "off"
+    "operator-linebreak": "off",
+    "no-underscore-dangle": "off"
   },
   "parser": "babel-eslint",
   "parserOptions": {

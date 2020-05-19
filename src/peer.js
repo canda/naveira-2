@@ -89,7 +89,6 @@ const removePeer = (peerId) => {
 const setupSubscriptionCallbacks = (peer) => {
   peer.connection.on('data', (stringData) => {
     const { method, data } = JSON.parse(stringData);
-    console.log('data', { method, data });
     subscriptions
       .filter((subscription) => subscription.method === method)
       .forEach((subscription) => {

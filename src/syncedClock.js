@@ -1,17 +1,27 @@
-import { mean, standardDeviation } from 'simple-statistics';
-import { sendToAllPeers, subscribeToMethod, sendToPeer } from './peer';
-import { graph } from './graph';
+import { mean } from 'simple-statistics';
+import { subscribeToMethod, sendToPeer } from './peer';
+import { createObservableValue } from './observable';
 
-// { peerId: { mean: number, measurments: number[]} }
+// { peerId: { value: observable, measurments: number[]} }
 const offsets = {};
 
 window.offsets = offsets;
+let maxMeasurements = 100;
 
-export const offsetWithPeer = (peerId) => (offsets[peerId] || {}).mean;
+const newOffset = () => ({ measurments: [], value: createObservableValue() });
 
-export const sync = () => {
+export const subscribeToPeerOffset = (peerId, callback) => {
+  if (!offsets[peerId]) {
+    offsets[peerId] = newOffset();
+  }
+
+  offsets[peerId].value.subscribeToValue(callback);
+};
+
+export const syncWithPeer = (peerId) => {
+  maxMeasurements += 100;
   // ask everyone what time is it
-  sendToAllPeers('whatTimeIsIt', { sentAt: Date.now() });
+  sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId);
 };
 
 // when asked for time, answer with the same payload that comes but adding the current time
@@ -27,37 +37,26 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
 
   let peerOffset = offsets[peerId];
   if (!peerOffset) {
-    peerOffset = { measurments: [] };
+    peerOffset = newOffset();
     offsets[peerId] = peerOffset;
   }
   peerOffset.measurments.push(calculatedOffset);
   const newMean = mean(peerOffset.measurments);
-  console.log(
-    `changing offset of peer ${peerId} from ${
-      peerOffset.mean
-    } to ${newMean} (difference: ${newMean - peerOffset.mean})`,
-  );
-  peerOffset.mean = newMean;
+  peerOffset.value.setValue(newMean);
 
-  if (peerOffset.measurments.length > (window.maxMeasurements || 1000)) {
-    const allowedDeviation = standardDeviation(peerOffset.measurments) * 4;
-    const oldMean = peerOffset.mean;
+  if (peerOffset.measurments.length > 100) {
+    console.log('filtering');
+    // const allowedDeviation = standardDeviation(peerOffset.measurments) * 4;
+    const allowedDeviation = 42;
     peerOffset.filteredMeasurments = peerOffset.measurments.filter(
-      (x) => oldMean - allowedDeviation <= x && x <= oldMean + allowedDeviation,
+      (x) => newMean - allowedDeviation <= x && x <= newMean + allowedDeviation,
     );
-    console.log('allowedDeviation', allowedDeviation);
-    console.log('oldMean', oldMean);
-    console.log('newMean', mean(peerOffset.filteredMeasurments));
-    if (window.filterOdd) {
-      peerOffset.mean = mean(peerOffset.filteredMeasurments);
-    }
-
-    graph(peerOffset.measurments);
-    return;
+    peerOffset.value.setValue(mean(peerOffset.filteredMeasurments));
   }
-
-  setTimeout(
-    () => sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId),
-    50, // 🎩
-  );
+  if (peerOffset.measurments.length <= maxMeasurements) {
+    setTimeout(
+      () => sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId),
+      100, // 🎩
+    );
+  }
 });

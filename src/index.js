@@ -1,22 +1,26 @@
-import { offsetWithPeer, sync } from './syncedClock';
+import { subscribeToPeerOffset, syncWithPeer } from './syncedClock';
 import { sendToAllPeers, subscribeToMethod } from './peer';
 import { playAudioAtTime } from './music';
 
+let playingPeer;
+
 const play = () => {
-  const timeToPlay = Date.now() + 10000;
+  const timeToPlay = Date.now();
   sendToAllPeers('play', { time: timeToPlay });
   playAudioAtTime(timeToPlay);
 };
 
 subscribeToMethod('play', ({ payload, peerId }) => {
-  const playTime = payload.time - offsetWithPeer(peerId);
-  playAudioAtTime(playTime);
-  console.log('peerId', peerId);
-  console.log('offsets', window.offsets);
-  console.log(`playing in ${Date.now() - playTime} at ${playTime}`);
-  console.log('Date.now()', Date.now());
-  console.log('offsetWithPeer(peerId)', offsetWithPeer(peerId));
+  playingPeer = peerId;
+  console.log(
+    `playing in ${Math.round((payload.time - Date.now()) / 1000)} seconds`,
+  );
+  syncWithPeer(peerId);
+  subscribeToPeerOffset(peerId, (offset = 0) => {
+    const playTime = payload.time - offset;
+    playAudioAtTime(playTime);
+  });
 });
 
 window.play = play;
-window.sync = sync;
+window.sync = () => syncWithPeer(playingPeer);
