@@ -1,17 +1,19 @@
 {
   "extends": "airbnb",
   "rules": {
-    "no-useless-call": "error",
-    "react/jsx-filename-extension": "off",
-    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],
-    "import/prefer-default-export": "off",
+    "arrow-body-style": "off",
     "arrow-parens": "off",
-    "no-console": "off",
-    "implicit-arrow-linebreak": "off",
     "function-paren-newline": "off",
-    "operator-linebreak": "off",
+    "implicit-arrow-linebreak": "off",
+    "import/extensions": "off",
+    "import/no-unresolved": "off",
+    "import/prefer-default-export": "off",
+    "no-console": "off",
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],
     "no-underscore-dangle": "off",
-    "import/extensions": "off"
+    "no-useless-call": "error",
+    "operator-linebreak": "off",
+    "react/jsx-filename-extension": "off"
   },
   "parser": "babel-eslint",
   "parserOptions": {
@@ -24,10 +26,12 @@
   "plugins": ["babel"],
   "globals": {
     "Ably": false,
+    "dragDrop": false,
     "fetch": false,
     "Peer": false,
     "SimplePeer": false,
-    "SimpleStatistics": false
+    "SimpleStatistics": false,
+    "WebTorrent": false
   },
   "env": {
     "browser": true

@@ -1,6 +1,12 @@
-import { subscribeToPeerOffset, syncWithPeer } from './syncedClock.js';
-import { sendToAllPeers, subscribeToMethod } from './peer.js';
-import { playAudioAtTime } from './music.js';
+import {
+  html,
+  render,
+} from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { subscribeToPeerOffset, syncWithPeer } from './services/syncedClock.js';
+import { sendToAllPeers, subscribeToMethod } from './services/peer.js';
+import { playAudioAtTime } from './services/music.js';
+import { set, get } from './services/datastore.js';
+import App from './ui/App.js';
 
 let playingPeer;
 
@@ -24,3 +30,5 @@ subscribeToMethod('play', ({ payload, peerId }) => {
 
 window.play = play;
 window.sync = () => syncWithPeer(playingPeer);
+
+render(html`<${App} page="All" />`, document.body);
