@@ -8,13 +8,7 @@
   },
   "author": "canda",
   "license": "MIT",
-  "dependencies": {
-    "ably": "^1.1.24",
-    "buffer-to-arraybuffer": "0.0.5",
-    "chart.js": "^2.9.3",
-    "simple-peer": "^9.7.0",
-    "simple-statistics": "^7.1.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "live-server": "^1.2.1"
   }
