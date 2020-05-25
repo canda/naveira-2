@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^12.0.0",
+    "@rollup/plugin-json": "^4.0.3",
     "@rollup/plugin-node-resolve": "^8.0.0",
     "postcss": "^7.0.30",
     "postcss-load-config": "^2.1.0",
@@ -22,6 +23,9 @@
     "svelte-preprocess": "^3.7.4"
   },
   "dependencies": {
-    "sirv-cli": "^0.4.4"
+    "idb": "^5.0.3",
+    "sirv-cli": "^0.4.4",
+    "uuid": "^8.1.0",
+    "webtorrent": "^0.108.3"
   }
 }

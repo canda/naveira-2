@@ -8,12 +8,15 @@ export const createObservableValue = (initialValue) => {
     callback(_value);
   };
 
+  const getValue = () => _value;
+
   const setValue = (newValue) => {
     _value = newValue;
     _subscribers.forEach((callback) => callback(_value));
   };
 
   return {
+    getValue,
     setValue,
     subscribeToValue,
   };

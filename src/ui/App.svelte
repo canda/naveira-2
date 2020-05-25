@@ -1,42 +1,87 @@
 <script>
   import List, { Item, Text } from '@smui/list';
+  import IconButton, { Icon } from '@smui/icon-button';
+  import { getAll, save, remove } from '../services/filestore.js';
+  import { seed } from '../services/webtorrent';
+  import {
+    onChange as onPlaylistChange,
+    addSong as addSongToPlaylist,
+  } from '../services/playlist';
 
-  let fruits = ['Apple', 'Orange', 'Banana', 'Mango'];
+  let playlist = [];
+  onPlaylistChange((newPlaylist) => {
+    playlist = newPlaylist;
+  });
+
+  let libraryFiles = [];
+  const getSavedFiles = async () => {
+    const files = await getAll();
+    libraryFiles = files;
+    files.forEach((file) => seed(file));
+  };
+  getSavedFiles();
+
+  // When user drops files on the browser, create a new torrent and start seeding it!
+  dragDrop('body', (droppedFiles) => {
+    droppedFiles.forEach(async (blob) => {
+      const file = await seed(blob);
+      libraryFiles = [...libraryFiles, file];
+      save(torrent.magnetURI, file);
+    });
+  });
+
+  const removeFile = (magnetURI) => {
+    libraryFiles = libraryFiles.filter((file) => file.magnetURI !== magnetURI);
+    remove(magnetURI);
+  };
 </script>
 
 <style>
-  main {
-    text-align: center;
-    padding: 1em;
-    max-width: 240px;
-    margin: 0 auto;
+  .lists {
+    display: flex;
   }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4em;
-    font-weight: 100;
+  .list {
+    flex: 1;
   }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
+  .remove-icon {
+    position: relative;
+    top: 5px;
+    display: inline-block;
   }
 </style>
 
 <main>
-  <List>
-    {#each fruits as fruit}
-      <Item>
-        <Text>{fruit}</Text>
-      </Item>
-    {/each}
-  </List>
-  <p>
-    Visit the
-    <a href="https://svelte.dev/tutorial">Svelte tutorial</a>
-    to learn how to build Svelte apps.
-  </p>
+  <div class="lists">
+    <div class="list playlist">
+      <h1 class="mdc-typography--headline6">Playlist</h1>
+
+      {#each playlist as file}
+        <Item>
+          <Text>{file.name}</Text>
+        </Item>
+      {/each}
+    </div>
+    <div class="list library">
+      <List>
+        <h1 class="mdc-typography--headline6">Local Library</h1>
+        {#each libraryFiles as file}
+          <Item
+            on:click={() => {
+              addSongToPlaylist(file);
+            }}>
+            <Text>
+              {file.name}
+              <div class="remove-icon">
+                <IconButton
+                  class="material-icons"
+                  on:click={() => removeFile(file.magnetURI)}>
+                  remove_circle
+                </IconButton>
+              </div>
+            </Text>
+          </Item>
+        {/each}
+      </List>
+    </div>
+  </div>
 </main>
