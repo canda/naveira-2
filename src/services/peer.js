@@ -84,9 +84,13 @@ const removePeer = (peerId) => {
   }
 };
 
+// for debug purposes
+window.messages = [];
+
 const setupSubscriptionCallbacks = (peer) => {
   peer.connection.on('data', (stringData) => {
     const { method, data } = JSON.parse(stringData);
+    window.messages.push({ method, data, peer });
     subscriptions
       .filter((subscription) => subscription.method === method)
       .forEach((subscription) => {

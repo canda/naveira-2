@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 
-export const myId = uuid();
+export const ownId = uuid();
 
 const queryParams = new URLSearchParams(window.location.search);
 export const roomId = queryParams.get('room') || uuid();

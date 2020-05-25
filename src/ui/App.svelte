@@ -6,6 +6,7 @@
   import {
     onChange as onPlaylistChange,
     addSong as addSongToPlaylist,
+    removeSongAtIndex,
   } from '../services/playlist';
 
   let playlist = [];
@@ -26,7 +27,7 @@
     droppedFiles.forEach(async (blob) => {
       const file = await seed(blob);
       libraryFiles = [...libraryFiles, file];
-      save(torrent.magnetURI, file);
+      await save(file.magnetURI, file);
     });
   });
 
@@ -55,9 +56,18 @@
     <div class="list playlist">
       <h1 class="mdc-typography--headline6">Playlist</h1>
 
-      {#each playlist as file}
+      {#each playlist as song, index}
         <Item>
-          <Text>{file.name}</Text>
+          <Text>
+            {song.name}
+            <div class="remove-icon">
+              <IconButton
+                class="material-icons"
+                on:click={() => removeSongAtIndex(index)}>
+                remove_circle
+              </IconButton>
+            </div>
+          </Text>
         </Item>
       {/each}
     </div>
