@@ -87,6 +87,10 @@ const removePeer = (peerId) => {
 // for debug purposes
 window.messages = [];
 
+const peerConnectedCallbacks = [];
+export const onPeerConnect = (callback) =>
+  peerConnectedCallbacks.push(callback);
+
 const setupSubscriptionCallbacks = (peer) => {
   peer.connection.on('data', (stringData) => {
     const { method, data } = JSON.parse(stringData);
@@ -109,6 +113,8 @@ const setupSubscriptionCallbacks = (peer) => {
 
   peer.connection.on('connect', () => {
     console.log('connect', peer);
+    const sendToThisPeer = (method, data) => sendToPeer(method, data, peer.id);
+    peerConnectedCallbacks.forEach((callback) => callback(sendToThisPeer));
     persistedMessages.forEach(({ method, data }) => {
       sendToPeer(method, data, peer.id);
     });

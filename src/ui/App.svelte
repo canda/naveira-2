@@ -11,7 +11,7 @@
     addSong as addSongToPlaylist,
     removeSongAtIndex,
   } from '../services/playlist';
-  import { playlistSchedule } from '../services/music';
+  import { onChange as onScheduleChange, play } from '../services/schedule';
 
   let playlist = [];
   onPlaylistChange((newPlaylist) => {
@@ -19,9 +19,13 @@
   });
 
   let libraryFiles = [];
-  console.log('onFilesChange');
   onFilesChange((newFiles) => {
     libraryFiles = newFiles;
+  });
+
+  let schedule;
+  onScheduleChange((newSchedule) => {
+    schedule = newSchedule;
   });
 
   // When user drops files on the browser, create a new torrent and start seeding it!
@@ -106,9 +110,7 @@
       <IconButton class="material-icons" on:click={() => console.log('pause')}>
         pause
       </IconButton>
-      <IconButton
-        class="material-icons"
-        on:click={() => playlistSchedule(playlist)}>
+      <IconButton class="material-icons" on:click={() => play()}>
         play_arrow
       </IconButton>
       <IconButton

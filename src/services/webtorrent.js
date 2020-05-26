@@ -1,26 +1,39 @@
-const client = new WebTorrent();
+const _client = new WebTorrent();
+window._client = _client;
 
-const cache = {};
+const _cache = {};
 
-export const seed = (file) =>
-  new Promise((resolve) => {
-    client.seed(file, async (torrent) => {
+export const seed = (file) => {
+  console.log('seeding', file);
+  return new Promise((resolve) => {
+    _client.seed(file, async (torrent) => {
       file.magnetURI = torrent.magnetURI;
-      cache[file.magnetURI] = Promise.resolve(file);
+      _cache[file.magnetURI] = Promise.resolve(file);
       resolve(file);
     });
   });
+};
 
 export const download = (magnetURI) => {
-  if (cache[magnetURI]) {
-    return cache[magnetURI];
+  console.log('downloading', magnetURI);
+  if (_cache[magnetURI]) {
+    return _cache[magnetURI];
   }
 
-  cache[magnetURI] = new Promise((resolve) => {
-    client.add(magnetURI, (torrent) => {
-      resolve(torrent.files[0]);
+  _cache[magnetURI] = new Promise((resolve, reject) => {
+    _client.add(magnetURI, (torrent) => {
+      const file = torrent.files[0];
+      console.log('file', file);
+      file.getBlob((error, blob) => {
+        console.log('error, blob', error, blob);
+        if (error) {
+          return reject(error);
+        }
+        blob.magnetURI = magnetURI;
+        resolve(blob);
+      });
     });
   });
 
-  return cache[magnetURI];
+  return _cache[magnetURI];
 };

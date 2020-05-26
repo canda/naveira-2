@@ -1,17 +1,24 @@
-import { sendToAllPeers, subscribeToMethod } from './peer';
+import { sendToAllPeers, subscribeToMethod, onPeerConnect } from './peer';
 import { createObservableValue } from './observable';
-import { download } from './webtorrent';
+import { get } from './filestore';
 
 let _playlist = createObservableValue([]);
+window._playlist = _playlist;
 
 subscribeToMethod('changePlaylist', ({ payload }) => {
   _playlist.setValue(
     payload.playlist.map(({ magnetURI, name }) => ({
       magnetURI,
       name,
-      file: download(magnetURI),
+      file: get(magnetURI),
     })),
   );
+});
+
+onPeerConnect((send) => {
+  send('changePlaylist', {
+    playlist: _playlist.getValue(),
+  });
 });
 
 const updatePlaylist = (newPlaylist) => {
@@ -38,3 +45,5 @@ export const removeSongAtIndex = (index) => {
 };
 
 export const onChange = (callback) => _playlist.subscribeToValue(callback);
+
+export const getValue = () => _playlist.getValue();

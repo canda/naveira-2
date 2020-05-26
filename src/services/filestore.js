@@ -9,6 +9,7 @@ const dbPromise = openDB('file-store', 1, {
 });
 
 const _files = createObservableValue([]);
+window._files = _files;
 
 export const onChange = (callback) => _files.subscribeToValue(callback);
 
@@ -22,31 +23,29 @@ const getSavedFiles = async () => {
   );
 };
 
-console.log('getSavedFiles before');
 getSavedFiles().then((savedFiles) => {
-  console.log('getSavedFiles');
   _files.setValue([..._files.getValue(), ...savedFiles]);
 });
 
 export const get = async (magnetURI) => {
-  if (_files.getValue()[magnetURI]) {
-    return Promise.resolve(
-      _files.getValue().find((f) => f.magnetURI === magnetURI),
-    );
+  const localFile = _files.getValue().find((f) => f.magnetURI === magnetURI);
+  if (localFile) {
+    return Promise.resolve(localFile);
   }
-  return download(magnetURI);
+  const downloadedFile = await download(magnetURI);
+  _files.setValue([..._files.getValue(), downloadedFile]);
+  return downloadedFile;
 };
 
 export const add = async (blob) => {
   const file = await seed(blob);
   (await dbPromise).put('filesByMagnet', file, file.magnetURI);
+  _files.setValue([..._files.getValue(), file]);
   return file;
 };
 
 export const remove = async (magnetURI) => {
-  const newFiles = { ..._files.getValue() };
-  delete newFiles[magnetURI];
-  _files.setValue(newFiles);
+  _files.setValue(_files.getValue().filter((f) => f.magnetURI !== magnetURI));
   (await dbPromise).delete('filesByMagnet', magnetURI);
 };
 
