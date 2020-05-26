@@ -1,13 +1,17 @@
 <script>
   import List, { Item, Text } from '@smui/list';
   import IconButton, { Icon } from '@smui/icon-button';
-  import { getAll, save, remove } from '../services/filestore.js';
-  import { seed } from '../services/webtorrent';
+  import {
+    onChange as onFilesChange,
+    add as addFile,
+    remove as removeFile,
+  } from '../services/filestore.js';
   import {
     onChange as onPlaylistChange,
     addSong as addSongToPlaylist,
     removeSongAtIndex,
   } from '../services/playlist';
+  import { playlistSchedule } from '../services/music';
 
   let playlist = [];
   onPlaylistChange((newPlaylist) => {
@@ -15,26 +19,15 @@
   });
 
   let libraryFiles = [];
-  const getSavedFiles = async () => {
-    const files = await getAll();
-    libraryFiles = files;
-    files.forEach((file) => seed(file));
-  };
-  getSavedFiles();
+  console.log('onFilesChange');
+  onFilesChange((newFiles) => {
+    libraryFiles = newFiles;
+  });
 
   // When user drops files on the browser, create a new torrent and start seeding it!
   dragDrop('body', (droppedFiles) => {
-    droppedFiles.forEach(async (blob) => {
-      const file = await seed(blob);
-      libraryFiles = [...libraryFiles, file];
-      await save(file.magnetURI, file);
-    });
+    droppedFiles.forEach((blob) => addFile(blob));
   });
-
-  const removeFile = (magnetURI) => {
-    libraryFiles = libraryFiles.filter((file) => file.magnetURI !== magnetURI);
-    remove(magnetURI);
-  };
 </script>
 
 <style>
@@ -48,6 +41,15 @@
     position: relative;
     top: 5px;
     display: inline-block;
+  }
+
+  .controls {
+    position: fixed;
+    bottom: 5px;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>
 
@@ -94,4 +96,29 @@
       </List>
     </div>
   </div>
+  {#if playlist.length}
+    <div class="controls">
+      <IconButton
+        class="material-icons"
+        on:click={() => console.log('skip_previous')}>
+        skip_previous
+      </IconButton>
+      <IconButton class="material-icons" on:click={() => console.log('pause')}>
+        pause
+      </IconButton>
+      <IconButton
+        class="material-icons"
+        on:click={() => playlistSchedule(playlist)}>
+        play_arrow
+      </IconButton>
+      <IconButton
+        class="material-icons"
+        on:click={() => console.log('skip_next')}>
+        skip_next
+      </IconButton>
+      <IconButton class="material-icons" on:click={() => console.log('sync')}>
+        sync
+      </IconButton>
+    </div>
+  {/if}
 </main>
