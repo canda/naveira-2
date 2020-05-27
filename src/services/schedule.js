@@ -4,34 +4,27 @@ import { getValue as getPlaylist } from './playlist';
 import { sendToAllPeers, subscribeToMethod, onPeerConnect } from './peer';
 
 let _schedule = createObservableValue([]);
-window._schedule = _schedule;
+window._debug = window._debug || {};
+window._debug.schedule = _schedule;
 
 export const onChange = (callback) => _schedule.subscribeToValue(callback);
 
 export const play = async () => {
-  // console.log(
-  //   'playlistSchedule(getPlaylist())',
-  //   playlistSchedule(getPlaylist()),
-  // );
-  // console.log(
-  //   'await playlistSchedule(getPlaylist())',
-  //   await playlistSchedule(getPlaylist()),
-  // );
+  if (_schedule.value) {
+    return;
+  }
   const schedule = await playlistSchedule(getPlaylist());
-  console.log('_schedule.setValue(schedule);', schedule);
   _schedule.setValue(schedule);
-  console.log('sendToAllPeers');
+
   sendToAllPeers('updateSchedule', {
     schedule,
   });
-
-  console.log('schedule', schedule);
-  // console.log('playSchedule(schedule)', playSchedule(schedule));
 
   await playSchedule(schedule);
 };
 
 subscribeToMethod('updateSchedule', ({ payload }) => {
+  _schedule.setValue(payload.schedule);
   playSchedule(payload.schedule);
 });
 

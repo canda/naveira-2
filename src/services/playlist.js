@@ -1,18 +1,22 @@
 import { sendToAllPeers, subscribeToMethod, onPeerConnect } from './peer';
 import { createObservableValue } from './observable';
-import { get } from './filestore';
+import { get, add } from './filestore';
 
 let _playlist = createObservableValue([]);
-window._playlist = _playlist;
+window._debug = window._debug || {};
+window._debug.playlist = _playlist;
 
 subscribeToMethod('changePlaylist', ({ payload }) => {
   _playlist.setValue(
     payload.playlist.map(({ magnetURI, name }) => ({
       magnetURI,
       name,
-      file: get(magnetURI),
     })),
   );
+
+  payload.playlist.forEach(async ({ magnetURI }) => {
+    await get(magnetURI);
+  });
 });
 
 onPeerConnect((send) => {

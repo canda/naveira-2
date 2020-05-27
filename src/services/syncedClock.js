@@ -3,21 +3,35 @@ import { createObservableValue } from './observable.js';
 
 // { peerId: { value: observable, measurments: number[]} }
 const offsets = {};
-
-window.offsets = offsets;
+window._debug = window._debug || {};
+window._debug.offsets = offsets;
 let maxMeasurements = 100;
 
-const newOffset = () => ({ measurments: [], value: createObservableValue() });
+const newOffset = () => ({
+  measurments: [],
+  value: createObservableValue(),
+  averagedValue: createObservableValue(),
+});
 
-export const subscribeToPeerOffset = (peerId, callback) => {
+export const getOffsetWithPeer = (peerId) =>
+  new Promise((resolve) => {
+    syncWithPeer(peerId);
+    subscribeToPeerOffset(peerId, (value) => {
+      if (value) {
+        resolve(value);
+      }
+    });
+  });
+
+const subscribeToPeerOffset = (peerId, callback) => {
   if (!offsets[peerId]) {
     offsets[peerId] = newOffset();
   }
 
-  offsets[peerId].value.subscribeToValue(callback);
+  offsets[peerId].averagedValue.subscribeToValue(callback);
 };
 
-export const syncWithPeer = (peerId) => {
+const syncWithPeer = (peerId) => {
   maxMeasurements += 100;
   // ask everyone what time is it
   sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId);
@@ -43,7 +57,7 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
   const newMean = SimpleStatistics.mean(peerOffset.measurments);
   peerOffset.value.setValue(newMean);
 
-  if (peerOffset.measurments.length > 100) {
+  if (peerOffset.measurments.length > 500) {
     console.log('filtering');
     // const allowedDeviation = standardDeviation(peerOffset.measurments) * 4;
     const allowedDeviation = 42;
@@ -53,11 +67,14 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
     peerOffset.value.setValue(
       SimpleStatistics.mean(peerOffset.filteredMeasurments),
     );
+    peerOffset.averagedValue.setValue(
+      SimpleStatistics.mean(peerOffset.filteredMeasurments),
+    );
   }
   if (peerOffset.measurments.length <= maxMeasurements) {
     setTimeout(
       () => sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId),
-      100, // 🎩
+      10, // 🎩
     );
   }
 });

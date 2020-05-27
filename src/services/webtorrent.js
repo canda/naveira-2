@@ -1,5 +1,8 @@
+import { createObservableValue } from './observable';
+
 const _client = new WebTorrent();
-window._client = _client;
+window._debug = window._debug || {};
+window._debug.client = _client;
 
 const _cache = {};
 
@@ -29,11 +32,35 @@ export const download = (magnetURI) => {
         if (error) {
           return reject(error);
         }
-        blob.magnetURI = magnetURI;
-        resolve(blob);
+        resolve({
+          name: file.name,
+          magnetURI,
+          blob,
+        });
       });
     });
   });
 
   return _cache[magnetURI];
 };
+
+export const speeds = createObservableValue({
+  uploadSpeed: 0,
+  downloadSpeed: 0,
+});
+
+export const torrentProgresses = createObservableValue([]);
+window._debug.torrentProgresses = torrentProgresses;
+
+setInterval(() => {
+  speeds.setValue({
+    uploadSpeed: _client.uploadSpeed,
+    downloadSpeed: _client.downloadSpeed,
+  });
+  torrentProgresses.setValue(
+    _client.torrents.map((t) => ({
+      progress: t.progress,
+      magnetURI: t.magnetURI,
+    })),
+  );
+}, 500);

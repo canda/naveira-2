@@ -4,8 +4,9 @@ import * as SocketChannel from './socket.js';
 // List of all the connected peers
 // [{ id: string, connection: {new SimplePeer()} }]
 const peers = [];
-
-window.peers = peers;
+window._debug = window._debug || {};
+window._debug.peers = peers;
+window._debug.messages = [];
 
 // List of external subscriptions to be called on data received by peers
 // `method` key is used to filter received data
@@ -84,9 +85,6 @@ const removePeer = (peerId) => {
   }
 };
 
-// for debug purposes
-window.messages = [];
-
 const peerConnectedCallbacks = [];
 export const onPeerConnect = (callback) =>
   peerConnectedCallbacks.push(callback);
@@ -94,7 +92,7 @@ export const onPeerConnect = (callback) =>
 const setupSubscriptionCallbacks = (peer) => {
   peer.connection.on('data', (stringData) => {
     const { method, data } = JSON.parse(stringData);
-    window.messages.push({ method, data, peer });
+    window._debug.messages.push({ method, data, peer });
     subscriptions
       .filter((subscription) => subscription.method === method)
       .forEach((subscription) => {

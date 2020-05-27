@@ -16,6 +16,9 @@ export const createObservableValue = (initialValue) => {
   };
 
   return {
+    get value() {
+      return _value;
+    },
     getValue,
     setValue,
     subscribeToValue,

@@ -9,7 +9,8 @@ const dbPromise = openDB('file-store', 1, {
 });
 
 const _files = createObservableValue([]);
-window._files = _files;
+window._debug = window._debug || {};
+window._debug.files = _files;
 
 export const onChange = (callback) => _files.subscribeToValue(callback);
 
@@ -37,9 +38,12 @@ export const get = async (magnetURI) => {
   return downloadedFile;
 };
 
-export const add = async (blob) => {
-  const file = await seed(blob);
-  (await dbPromise).put('filesByMagnet', file, file.magnetURI);
+export const add = async ({ name, blob, magnetURI }) => {
+  if (!magnetURI) {
+    magnetURI = (await seed(blob)).magnetURI;
+  }
+  const file = { blob, name, magnetURI };
+  (await dbPromise).put('filesByMagnet', file, magnetURI);
   _files.setValue([..._files.getValue(), file]);
   return file;
 };
