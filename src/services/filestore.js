@@ -1,10 +1,11 @@
 import { openDB } from 'idb';
+import md5 from 'md5';
 import { createObservableValue } from './observable';
 import { download, seed } from './webtorrent';
 
 const dbPromise = openDB('file-store', 1, {
   upgrade(db) {
-    db.createObjectStore('filesByMagnet');
+    db.createObjectStore('filesByBlobHash');
   },
 });
 
@@ -16,11 +17,9 @@ export const onChange = (callback) => _files.subscribeToValue(callback);
 
 const getSavedFiles = async () => {
   return Promise.all(
-    (await (await dbPromise).getAllKeys('filesByMagnet')).map(async (key) => {
-      const file = await (await dbPromise).get('filesByMagnet', key);
-      file.magnetURI = key;
-      return file;
-    }),
+    (await (await dbPromise).getAllKeys('filesByBlobHash')).map(async (key) =>
+      (await dbPromise).get('filesByBlobHash', key),
+    ),
   );
 };
 
@@ -28,31 +27,22 @@ getSavedFiles().then((savedFiles) => {
   _files.setValue([..._files.getValue(), ...savedFiles]);
 });
 
-export const get = async (magnetURI) => {
-  const localFile = _files.getValue().find((f) => f.magnetURI === magnetURI);
-  if (localFile) {
-    return Promise.resolve(localFile);
-  }
-  const downloadedFile = await download(magnetURI);
-  _files.setValue([..._files.getValue(), downloadedFile]);
-  return downloadedFile;
-};
+export const get = async (blobHash) =>
+  _files.getValue().find((f) => f.blobHash === blobHash);
 
-export const add = async ({ name, blob, magnetURI }) => {
-  if (!magnetURI) {
-    magnetURI = (await seed(blob)).magnetURI;
-  }
-  const file = { blob, name, magnetURI };
-  (await dbPromise).put('filesByMagnet', file, magnetURI);
+export const add = async ({ name, blob }) => {
+  const blobHash = md5(blob);
+  const file = { blob, name, blobHash };
+  (await dbPromise).put('filesByBlobHash', file, blobHash);
   _files.setValue([..._files.getValue(), file]);
   return file;
 };
 
-export const remove = async (magnetURI) => {
-  _files.setValue(_files.getValue().filter((f) => f.magnetURI !== magnetURI));
-  (await dbPromise).delete('filesByMagnet', magnetURI);
+export const remove = async (blobHash) => {
+  _files.setValue(_files.getValue().filter((f) => f.blobHash !== blobHash));
+  (await dbPromise).delete('filesByBlobHash', blobHash);
 };
 
 // export const clear = async () => {
-//   return (await dbPromise).clear('filesByMagnet');
+//   return (await dbPromise).clear('filesByBlobHash');
 // };

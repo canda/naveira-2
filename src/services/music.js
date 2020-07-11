@@ -36,7 +36,7 @@ export const playSchedule = async (schedule) => {
   }
   for (let i = 0; i < schedule.songs.length; i++) {
     const { time, magnetURI } = schedule.songs[i];
-    const { blob } = await get(magnetURI);
+    const { blob } = get(blobHash);
     await playAudioAtTime(time, blob);
   }
 };

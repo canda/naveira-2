@@ -3,7 +3,7 @@ import { playlistSchedule, playSchedule } from './music';
 import { getValue as getPlaylist } from './playlist';
 import { sendToAllPeers, subscribeToMethod, onPeerConnect } from './peer';
 
-let _schedule = createObservableValue([]);
+let _schedule = createObservableValue();
 window._debug = window._debug || {};
 window._debug.schedule = _schedule;
 

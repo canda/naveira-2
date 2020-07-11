@@ -57,7 +57,7 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
   const newMean = SimpleStatistics.mean(peerOffset.measurments);
   peerOffset.value.setValue(newMean);
 
-  if (peerOffset.measurments.length > 500) {
+  if (peerOffset.measurments.length > maxMeasurements) {
     console.log('filtering');
     // const allowedDeviation = standardDeviation(peerOffset.measurments) * 4;
     const allowedDeviation = 42;
@@ -74,7 +74,7 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
   if (peerOffset.measurments.length <= maxMeasurements) {
     setTimeout(
       () => sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId),
-      10, // 🎩
+      20, // 🎩
     );
   }
 });
