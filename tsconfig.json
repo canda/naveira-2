@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "lib": ["es2018", "dom"],
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "target": "es2015",
+    "module": "es2015",
+    "types": ["svelte"]
+  },
+  "exclude": ["node_modules/*"],
+  "include": ["src/**/*"]
+}

@@ -1,5 +1,7 @@
 {
   "htmlWhitespaceSensitivity": "strict",
   "singleQuote": true,
-  "trailingComma": "all"
+  "trailingComma": "all",
+  "plugins": ["prettier-plugin-svelte"],
+  "svelteSortOrder": "styles-scripts-markup"
 }

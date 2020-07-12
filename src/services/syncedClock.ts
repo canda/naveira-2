@@ -1,19 +1,25 @@
-import { subscribeToMethod, sendToPeer } from './peer.js';
-import { createObservableValue } from './observable.js';
+import { subscribeToMethod, sendToPeer } from './peer';
+import { createObservableValue, Observable } from './observable';
 
-// { peerId: { value: observable, measurments: number[]} }
-const offsets = {};
+type Offset = {
+  measurements: number[];
+  value: Observable<number>;
+  averagedValue: Observable<number>;
+  filteredMeasurements?: number[];
+};
+// { peerId: { value: observable, measurements: number[]} }
+const offsets: Record<string, Offset> = {};
 window._debug = window._debug || {};
 window._debug.offsets = offsets;
 let maxMeasurements = 100;
 
-const newOffset = () => ({
-  measurments: [],
+const newOffset = (): Offset => ({
+  measurements: [],
   value: createObservableValue(),
   averagedValue: createObservableValue(),
 });
 
-export const getOffsetWithPeer = (peerId) =>
+export const getOffsetWithPeer = (peerId: string): Promise<number> =>
   new Promise((resolve) => {
     syncWithPeer(peerId);
     subscribeToPeerOffset(peerId, (value) => {
@@ -23,7 +29,10 @@ export const getOffsetWithPeer = (peerId) =>
     });
   });
 
-const subscribeToPeerOffset = (peerId, callback) => {
+const subscribeToPeerOffset = (
+  peerId: string,
+  callback: (value: number) => void,
+) => {
   if (!offsets[peerId]) {
     offsets[peerId] = newOffset();
   }
@@ -31,7 +40,11 @@ const subscribeToPeerOffset = (peerId, callback) => {
   offsets[peerId].averagedValue.subscribeToValue(callback);
 };
 
-const syncWithPeer = (peerId) => {
+interface WhatTimeIsItPayload {
+  sentAt: number;
+}
+
+const syncWithPeer = (peerId: string) => {
   maxMeasurements += 100;
   // ask everyone what time is it
   sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId);
@@ -53,25 +66,25 @@ subscribeToMethod('timeIs', ({ payload, peerId }) => {
     peerOffset = newOffset();
     offsets[peerId] = peerOffset;
   }
-  peerOffset.measurments.push(calculatedOffset);
-  const newMean = SimpleStatistics.mean(peerOffset.measurments);
+  peerOffset.measurements.push(calculatedOffset);
+  const newMean = SimpleStatistics.mean(peerOffset.measurements);
   peerOffset.value.setValue(newMean);
 
-  if (peerOffset.measurments.length > maxMeasurements) {
+  if (peerOffset.measurements.length > maxMeasurements) {
     console.log('filtering');
-    // const allowedDeviation = standardDeviation(peerOffset.measurments) * 4;
+    // const allowedDeviation = standardDeviation(peerOffset.measurements) * 4;
     const allowedDeviation = 42;
-    peerOffset.filteredMeasurments = peerOffset.measurments.filter(
+    peerOffset.filteredMeasurements = peerOffset.measurements.filter(
       (x) => newMean - allowedDeviation <= x && x <= newMean + allowedDeviation,
     );
     peerOffset.value.setValue(
-      SimpleStatistics.mean(peerOffset.filteredMeasurments),
+      SimpleStatistics.mean(peerOffset.filteredMeasurements),
     );
     peerOffset.averagedValue.setValue(
-      SimpleStatistics.mean(peerOffset.filteredMeasurments),
+      SimpleStatistics.mean(peerOffset.filteredMeasurements),
     );
   }
-  if (peerOffset.measurments.length <= maxMeasurements) {
+  if (peerOffset.measurements.length <= maxMeasurements) {
     setTimeout(
       () => sendToPeer('whatTimeIsIt', { sentAt: Date.now() }, peerId),
       20, // 🎩

@@ -4,36 +4,35 @@ const _client = new WebTorrent();
 window._debug = window._debug || {};
 window._debug.client = _client;
 
-const _cache = {};
+const _cache: Record<string, Promise<{ magnetURI: string; blob: Blob }>> = {};
 
-export const seed = (file) => {
-  console.log('seeding', file);
+export const seed = (blob: Blob) => {
+  console.log('seeding', blob);
   return new Promise((resolve) => {
-    _client.seed(file, async (torrent) => {
-      file.magnetURI = torrent.magnetURI;
-      _cache[file.magnetURI] = Promise.resolve(file);
-      resolve(file);
+    _client.seed(blob, async ({ magnetURI }: { magnetURI: string }) => {
+      _cache[magnetURI] = Promise.resolve({ blob, magnetURI });
+      resolve(blob);
     });
   });
 };
 
-export const download = (magnetURI) => {
+export const download = (magnetURI: string) => {
   console.log('downloading', magnetURI);
   if (_cache[magnetURI]) {
     return _cache[magnetURI];
   }
 
   _cache[magnetURI] = new Promise((resolve, reject) => {
-    _client.add(magnetURI, (torrent) => {
+    _client.add(magnetURI, (torrent: any) => {
       const file = torrent.files[0];
       console.log('file', file);
-      file.getBlob((error, blob) => {
+      file.getBlob((error: any, blob: Blob) => {
         console.log('error, blob', error, blob);
         if (error) {
           return reject(error);
         }
+        // TODO: save file in file store
         resolve({
-          name: file.name,
           magnetURI,
           blob,
         });
@@ -58,9 +57,11 @@ setInterval(() => {
     downloadSpeed: _client.downloadSpeed,
   });
   torrentProgresses.setValue(
-    _client.torrents.map((t) => ({
-      progress: t.progress,
-      magnetURI: t.magnetURI,
-    })),
+    _client.torrents.map(
+      ({ progress, magnetURI }: { progress: number; magnetURI: string }) => ({
+        progress: progress,
+        magnetURI: magnetURI,
+      }),
+    ),
   );
 }, 500);

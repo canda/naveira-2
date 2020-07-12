@@ -1,15 +1,17 @@
-<script>
+<script lang="typescript">
   import List, { Item, Text } from '@smui/list';
   import IconButton, { Icon } from '@smui/icon-button';
   import {
     onChange as onFilesChange,
     add as addFile,
     remove as removeFile,
-  } from '../services/filestore.js';
+    File,
+  } from '../services/filestore';
   import {
     onChange as onPlaylistChange,
     addSong as addSongToPlaylist,
     removeSongAtIndex,
+    Playlist,
   } from '../services/playlist';
   import { onChange as onScheduleChange, play } from '../services/schedule';
   import {
@@ -17,12 +19,12 @@
     torrentProgresses as torrentProgressesObservable,
   } from '../services/webtorrent';
 
-  let playlist = [];
+  let playlist: Playlist = [];
   onPlaylistChange((newPlaylist) => {
     playlist = newPlaylist;
   });
 
-  let libraryFiles = [];
+  let libraryFiles: File[] = [];
   onFilesChange((newFiles) => {
     libraryFiles = newFiles;
   });

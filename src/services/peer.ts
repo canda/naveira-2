@@ -1,29 +1,36 @@
-import { ownId, roomId } from './ids.js';
-import * as SocketChannel from './socket.js';
+import { ownId, roomId } from './ids';
+import * as SocketChannel from './socket';
+
+type Callback = (
+  data: any,
+  answer?: (answerMethod: string, answerPayload: any) => void,
+) => void;
+type Peer = { id: string; connection: any };
 
 // List of all the connected peers
-// [{ id: string, connection: {new SimplePeer()} }]
-const peers = [];
+const peers: Peer[] = [];
 window._debug = window._debug || {};
 window._debug.peers = peers;
 window._debug.messages = [];
 
 // List of external subscriptions to be called on data received by peers
 // `method` key is used to filter received data
-// [{ method: string, callback: (data) => void }]
-const subscriptions = [];
+const subscriptions: { method: string; callback: Callback }[] = [];
 
 // List of messages used to be send to newcomers
-// [{ method: string, data: any }]
-const persistedMessages = [];
+const persistedMessages: { method: string; data: any }[] = [];
 
-export const subscribeToMethod = (method, callback) => {
+export const subscribeToMethod = (method: string, callback: Callback) => {
   subscriptions.push({ method, callback });
 };
 
 export const getPeerIds = () => peers.map(({ id }) => id);
 
-export const sendToAllPeers = (method, data, persist) => {
+export const sendToAllPeers = (
+  method: string,
+  data: any,
+  persist?: boolean,
+) => {
   peers.forEach((peer) => {
     if (
       !peer.connection ||
@@ -50,7 +57,7 @@ export const sendToAllPeers = (method, data, persist) => {
   }
 };
 
-export const sendToPeer = (method, data, peerId) => {
+export const sendToPeer = (method: string, data: any, peerId: string) => {
   const peer = peers.find((p) => p.id === peerId);
 
   if (!peer) {
@@ -77,7 +84,7 @@ export const sendToPeer = (method, data, peerId) => {
   );
 };
 
-const removePeer = (peerId) => {
+const removePeer = (peerId: string) => {
   const index = peers.findIndex((p) => p.id === peerId);
   if (index >= 0) {
     peers[index].connection.destroy();
@@ -85,12 +92,15 @@ const removePeer = (peerId) => {
   }
 };
 
-const peerConnectedCallbacks = [];
-export const onPeerConnect = (callback) =>
-  peerConnectedCallbacks.push(callback);
+const peerConnectedCallbacks: ((
+  sendToThisPeer: (method: string, data: any) => void,
+) => void)[] = [];
+export const onPeerConnect = (
+  callback: (sendToThisPeer: (method: string, data: any) => void) => void,
+) => peerConnectedCallbacks.push(callback);
 
-const setupSubscriptionCallbacks = (peer) => {
-  peer.connection.on('data', (stringData) => {
+const setupSubscriptionCallbacks = (peer: Peer) => {
+  peer.connection.on('data', (stringData: string) => {
     const { method, data } = JSON.parse(stringData);
     window._debug.messages.push({ method, data, peer });
     subscriptions
@@ -111,7 +121,8 @@ const setupSubscriptionCallbacks = (peer) => {
 
   peer.connection.on('connect', () => {
     console.log('connect', peer);
-    const sendToThisPeer = (method, data) => sendToPeer(method, data, peer.id);
+    const sendToThisPeer = (method: string, data: any) =>
+      sendToPeer(method, data, peer.id);
     peerConnectedCallbacks.forEach((callback) => callback(sendToThisPeer));
     persistedMessages.forEach(({ method, data }) => {
       sendToPeer(method, data, peer.id);
@@ -123,7 +134,7 @@ const setupSubscriptionCallbacks = (peer) => {
     removePeer(peer.id);
   });
 
-  peer.connection.on('error', (error) => {
+  peer.connection.on('error', (error: any) => {
     console.log('error', error, peer);
     removePeer(peer.id);
   });
@@ -161,7 +172,7 @@ SocketChannel.subscribeToMethod('peer-joined', ({ id }) => {
   setupSubscriptionCallbacks(peer);
 
   // Create signaling data from the webrtc library
-  connection.on('signal', (data) => {
+  connection.on('signal', (data: any) => {
     console.log('initiator signal', data);
     // Send the webrtc signalling data through websockets to try to establish connection
     SocketChannel.sendToPeer(
@@ -195,7 +206,7 @@ SocketChannel.subscribeToMethod('signal', ({ id, signalData }) => {
     setupSubscriptionCallbacks(peer);
 
     // Create the answering signal data from the webrtc library
-    connection.on('signal', (data) => {
+    connection.on('signal', (data: any) => {
       console.log('receiver signal', data);
       SocketChannel.sendToPeer(
         'signal',
