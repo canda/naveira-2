@@ -1,3 +1,4 @@
+import SimpleStatistics from 'simple-statistics';
 import { subscribeToMethod, sendToPeer } from './peer';
 import { createObservableValue, Observable } from './observable';
 
@@ -9,8 +10,8 @@ type Offset = {
 };
 // { peerId: { value: observable, measurements: number[]} }
 const offsets: Record<string, Offset> = {};
-window._debug = window._debug || {};
-window._debug.offsets = offsets;
+(window as any)._debug = (window as any)._debug || {};
+(window as any)._debug.offsets = offsets;
 let maxMeasurements = 100;
 
 const newOffset = (): Offset => ({

@@ -9,9 +9,9 @@ type Peer = { id: string; connection: any };
 
 // List of all the connected peers
 const peers: Peer[] = [];
-window._debug = window._debug || {};
-window._debug.peers = peers;
-window._debug.messages = [];
+(window as any)._debug = (window as any)._debug || {};
+(window as any)._debug.peers = peers;
+(window as any)._debug.messages = [];
 
 // List of external subscriptions to be called on data received by peers
 // `method` key is used to filter received data
@@ -102,7 +102,7 @@ export const onPeerConnect = (
 const setupSubscriptionCallbacks = (peer: Peer) => {
   peer.connection.on('data', (stringData: string) => {
     const { method, data } = JSON.parse(stringData);
-    window._debug.messages.push({ method, data, peer });
+    (window as any)._debug.messages.push({ method, data, peer });
     subscriptions
       .filter((subscription) => subscription.method === method)
       .forEach((subscription) => {
@@ -156,7 +156,7 @@ SocketChannel.subscribeToMethod('peer-joined', ({ id }) => {
 
   // TODO: make peer connection UDP
   // Create the peer connection instance
-  const connection = new SimplePeer({
+  const connection = new (window as any).SimplePeer({
     initiator: true,
     trickle: false,
   });
@@ -193,7 +193,7 @@ SocketChannel.subscribeToMethod('signal', ({ id, signalData }) => {
   let peer = peers.find((p) => p.id === id);
 
   if (!peer) {
-    const connection = new SimplePeer({
+    const connection = new (window as any).SimplePeer({
       initiator: false,
       trickle: false,
     });

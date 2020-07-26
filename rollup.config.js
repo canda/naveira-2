@@ -1,22 +1,41 @@
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
-import json from '@rollup/plugin-json';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
-import autoPreprocess from 'svelte-preprocess';
-import postcss from 'rollup-plugin-postcss';
-
-const preprocessOptions = {
-  scss: true,
-  postcss: true,
-};
+import sveltePreprocess from 'svelte-preprocess';
+import typescript from '@rollup/plugin-typescript';
+import json from '@rollup/plugin-json';
 
 const production = !process.env.ROLLUP_WATCH;
 
+function serve() {
+  let server;
+
+  function toExit() {
+    if (server) server.kill(0);
+  }
+
+  return {
+    writeBundle() {
+      if (server) return;
+      server = require('child_process').spawn(
+        'npm',
+        ['run', 'start', '--', '--dev'],
+        {
+          stdio: ['ignore', 'inherit', 'inherit'],
+          shell: true,
+        },
+      );
+
+      process.on('SIGTERM', toExit);
+      process.on('exit', toExit);
+    },
+  };
+}
+
 export default {
-  input: 'src/main.js',
+  input: 'src/main.ts',
   output: {
     sourcemap: true,
     format: 'iife',
@@ -24,21 +43,7 @@ export default {
     file: 'public/build/bundle.js',
   },
   plugins: [
-    postcss({
-      minimize: production,
-      use: [
-        [
-          'sass',
-          {
-            includePaths: [
-              // styles folder contains the necessary "_smui-theme.scss" file.
-              './src',
-              './node_modules',
-            ],
-          },
-        ],
-      ],
-    }),
+    json(),
     svelte({
       // enable run-time checks when not in production
       dev: !production,
@@ -47,7 +52,7 @@ export default {
       css: (css) => {
         css.write('public/build/bundle.css');
       },
-      preprocess: autoPreprocess(preprocessOptions),
+      preprocess: sveltePreprocess(),
     }),
 
     // If you have external dependencies installed from
@@ -55,13 +60,12 @@ export default {
     // some cases you'll need additional configuration -
     // consult the documentation for details:
     // https://github.com/rollup/plugins/tree/master/packages/commonjs
-    typescript(),
     resolve({
       browser: true,
       dedupe: ['svelte'],
     }),
     commonjs(),
-    json(),
+    typescript({ sourceMap: !production }),
 
     // In dev mode, call `npm run start` once
     // the bundle has been generated
@@ -79,20 +83,3 @@ export default {
     clearScreen: false,
   },
 };
-
-function serve() {
-  let started = false;
-
-  return {
-    writeBundle() {
-      if (!started) {
-        started = true;
-
-        require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-          stdio: ['ignore', 'inherit', 'inherit'],
-          shell: true,
-        });
-      }
-    },
-  };
-}

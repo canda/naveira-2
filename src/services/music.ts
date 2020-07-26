@@ -2,8 +2,8 @@ import { ownId } from './ids';
 import { get } from './filestore';
 import { getOffsetWithPeer } from './syncedClock';
 import { download } from './webtorrent';
-import { Playlist } from './playlist';
-import { Schedule } from './schedule';
+import type { Playlist } from './playlist';
+import type { Schedule } from './schedule';
 
 // const blobToArrayBuffer = (file) =>
 //   new Promise((resolve) => {

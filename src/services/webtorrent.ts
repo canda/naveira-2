@@ -1,8 +1,11 @@
+// import WebTorrent from 'webtorrent';
 import { createObservableValue } from './observable';
 
+declare const WebTorrent: any;
+
 const _client = new WebTorrent();
-window._debug = window._debug || {};
-window._debug.client = _client;
+(window as any)._debug = (window as any)._debug || {};
+(window as any)._debug.client = _client;
 
 const _cache: Record<string, Promise<{ magnetURI: string; blob: Blob }>> = {};
 
@@ -49,7 +52,7 @@ export const speeds = createObservableValue({
 });
 
 export const torrentProgresses = createObservableValue([]);
-window._debug.torrentProgresses = torrentProgresses;
+(window as any)._debug.torrentProgresses = torrentProgresses;
 
 setInterval(() => {
   speeds.setValue({

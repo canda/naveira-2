@@ -5,8 +5,8 @@ import { download } from './webtorrent';
 export type Playlist = { magnetURI: string; blobHash: string }[];
 
 let _playlist: Observable<Playlist> = createObservableValue([]);
-window._debug = window._debug || {};
-window._debug.playlist = _playlist;
+(window as any)._debug = (window as any)._debug || {};
+(window as any)._debug.playlist = _playlist;
 
 subscribeToMethod(
   'changePlaylist',

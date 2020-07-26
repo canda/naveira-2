@@ -1,57 +1,3 @@
-<script lang="typescript">
-  import List, { Item, Text } from '@smui/list';
-  import IconButton, { Icon } from '@smui/icon-button';
-  import {
-    onChange as onFilesChange,
-    add as addFile,
-    remove as removeFile,
-    File,
-  } from '../services/filestore';
-  import {
-    onChange as onPlaylistChange,
-    addSong as addSongToPlaylist,
-    removeSongAtIndex,
-    Playlist,
-  } from '../services/playlist';
-  import { onChange as onScheduleChange, play } from '../services/schedule';
-  import {
-    speeds,
-    torrentProgresses as torrentProgressesObservable,
-  } from '../services/webtorrent';
-
-  let playlist: Playlist = [];
-  onPlaylistChange((newPlaylist) => {
-    playlist = newPlaylist;
-  });
-
-  let libraryFiles: File[] = [];
-  onFilesChange((newFiles) => {
-    libraryFiles = newFiles;
-  });
-
-  let schedule;
-  onScheduleChange((newSchedule) => {
-    schedule = newSchedule;
-  });
-
-  // When user drops files on the browser, create a new torrent and start seeding it!
-  dragDrop('body', (droppedFiles) => {
-    droppedFiles.forEach((file) => addFile({ name: file.name, blob: file }));
-  });
-
-  let downloadSpeed = 0;
-  let uploadSpeed = 0;
-  speeds.subscribeToValue((newValue) => {
-    downloadSpeed = newValue.downloadSpeed;
-    uploadSpeed = newValue.uploadSpeed;
-  });
-
-  let torrentProgresses = [];
-  torrentProgressesObservable.subscribeToValue((newTorrentProgresses) => {
-    torrentProgresses = newTorrentProgresses;
-  });
-</script>
-
 <style>
   .lists-container {
     display: flex;
@@ -105,6 +51,57 @@
   }
 </style>
 
+<script lang="ts">
+  import dragDrop from 'drag-drop';
+  import {
+    onChange as onFilesChange,
+    add as addFile,
+    remove as removeFile,
+  } from '../services/filestore.ts';
+  import {
+    onChange as onPlaylistChange,
+    addSong as addSongToPlaylist,
+    removeSongAtIndex,
+  } from '../services/playlist.ts';
+  import { onChange as onScheduleChange, play } from '../services/schedule.ts';
+  import {
+    speeds,
+    torrentProgresses as torrentProgressesObservable,
+  } from '../services/webtorrent.ts';
+
+  let playlist: any = [];
+  onPlaylistChange((newPlaylist) => {
+    playlist = newPlaylist;
+  });
+
+  let libraryFiles: any[] = [];
+  onFilesChange((newFiles) => {
+    libraryFiles = newFiles;
+  });
+
+  let schedule;
+  onScheduleChange((newSchedule) => {
+    schedule = newSchedule;
+  });
+
+  // When user drops files on the browser, create a new torrent and start seeding it!
+  dragDrop('body', (droppedFiles) => {
+    droppedFiles.forEach((file) => addFile({ name: file.name, blob: file }));
+  });
+
+  let downloadSpeed = 0;
+  let uploadSpeed = 0;
+  speeds.subscribeToValue((newValue) => {
+    downloadSpeed = newValue.downloadSpeed;
+    uploadSpeed = newValue.uploadSpeed;
+  });
+
+  let torrentProgresses = [];
+  torrentProgressesObservable.subscribeToValue((newTorrentProgresses) => {
+    torrentProgresses = newTorrentProgresses;
+  });
+</script>
+
 <div class="lists-container">
   <div class="list playlist">
     <h1 class="mdc-typography--headline6 title">Playlist</h1>
@@ -117,18 +114,16 @@
 
     {#each playlist as song, index}
       <div class="song">
-        <Item>
-          <Text>
-            {song.name}
-            <div class="remove-icon">
-              <IconButton
-                class="material-icons"
-                on:click={() => removeSongAtIndex(index)}>
-                remove_circle
-              </IconButton>
+        <li>
+          {song.name}
+          <div class="remove-icon">
+            <div
+              class="material-icons"
+              on:click={() => removeSongAtIndex(index)}>
+              remove_circle
             </div>
-          </Text>
-        </Item>
+          </div>
+        </li>
         <div
           class="progress"
           style="width: {Math.round((torrentProgresses.find((t) => t.magnetURI === song.magnetURI) || { progress: 0 }).progress * 100)}%" />
@@ -136,7 +131,7 @@
     {/each}
   </div>
   <div class="list library">
-    <List>
+    <ul>
       <h1 class="mdc-typography--headline6 title">
         Library
         <br />
@@ -148,23 +143,21 @@
         </span>
       </h1>
       {#each libraryFiles as file}
-        <Item
+        <li
           on:click={() => {
             addSongToPlaylist(file);
           }}>
-          <Text>
-            {file.name}
-            <div class="remove-icon">
-              <IconButton
-                class="material-icons"
-                on:click={() => removeFile(file.magnetURI)}>
-                remove_circle
-              </IconButton>
+          {file.name}
+          <div class="remove-icon">
+            <div
+              class="material-icons"
+              on:click={() => removeFile(file.magnetURI)}>
+              remove_circle
             </div>
-          </Text>
-        </Item>
+          </div>
+        </li>
       {/each}
-    </List>
+    </ul>
   </div>
 </div>
 {#if !playlist.length && !libraryFiles.length}
@@ -172,24 +165,16 @@
 {/if}
 {#if playlist.length}
   <div class="controls">
-    <IconButton
-      class="material-icons"
-      on:click={() => console.log('skip_previous')}>
+    <div class="material-icons" on:click={() => console.log('skip_previous')}>
       skip_previous
-    </IconButton>
-    <IconButton class="material-icons" on:click={() => console.log('pause')}>
+    </div>
+    <div class="material-icons" on:click={() => console.log('pause')}>
       pause
-    </IconButton>
-    <IconButton class="material-icons" on:click={() => play()}>
-      play_arrow
-    </IconButton>
-    <IconButton
-      class="material-icons"
-      on:click={() => console.log('skip_next')}>
+    </div>
+    <div class="material-icons" on:click={() => play()}>play_arrow</div>
+    <div class="material-icons" on:click={() => console.log('skip_next')}>
       skip_next
-    </IconButton>
-    <IconButton class="material-icons" on:click={() => console.log('sync')}>
-      sync
-    </IconButton>
+    </div>
+    <div class="material-icons" on:click={() => console.log('sync')}>sync</div>
   </div>
 {/if}

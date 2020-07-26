@@ -9,8 +9,8 @@ export type Schedule = {
 };
 
 let _schedule = createObservableValue();
-window._debug = window._debug || {};
-window._debug.schedule = _schedule;
+(window as any)._debug = (window as any)._debug || {};
+(window as any)._debug.schedule = _schedule;
 
 export const onChange = (callback: (newSchedule: Schedule) => void) =>
   _schedule.subscribeToValue(callback);

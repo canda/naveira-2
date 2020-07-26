@@ -1,5 +1,5 @@
 import { openDB } from 'idb';
-import md5 from 'js-md5';
+// import md5 from 'js-md5';
 import { createObservableValue } from './observable';
 
 const dbPromise = openDB('file-store', 1, {
@@ -11,8 +11,8 @@ const dbPromise = openDB('file-store', 1, {
 export type File = { blob: Blob; name: string; blobHash: string };
 
 const _files = createObservableValue([] as File[]);
-window._debug = window._debug || {};
-window._debug.files = _files;
+(window as any)._debug = (window as any)._debug || {};
+(window as any)._debug.files = _files;
 
 export const onChange = (callback: (files: File[]) => void) =>
   _files.subscribeToValue(callback);
@@ -33,7 +33,7 @@ export const get = (blobHash: string) =>
   _files.getValue().find((f) => f.blobHash === blobHash);
 
 export const add = async ({ name, blob }: { name: string; blob: Blob }) => {
-  const blobHash = md5(await blob.arrayBuffer());
+  const blobHash = (await blob.arrayBuffer()).byteLength.toString();
   const file = { blob, name, blobHash };
   (await dbPromise).put('filesByBlobHash', file, blobHash);
   _files.setValue([..._files.getValue(), file]);

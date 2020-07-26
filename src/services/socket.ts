@@ -1,3 +1,4 @@
+import Ably from 'ably'
 import { roomId, ownId } from './ids';
 
 const ably = new Ably.Realtime('FPRzWg.K37Q-g:DIzMBDeHognMNLuU');
