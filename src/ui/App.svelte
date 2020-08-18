@@ -53,21 +53,30 @@
 
 <script lang="ts">
   import dragDrop from 'drag-drop';
+  import getDefultSongs from '../services/default-songs';
   import {
     onChange as onFilesChange,
     add as addFile,
     remove as removeFile,
-  } from '../services/filestore.ts';
+  } from '../services/filestore';
   import {
     onChange as onPlaylistChange,
     addSong as addSongToPlaylist,
     removeSongAtIndex,
-  } from '../services/playlist.ts';
-  import { onChange as onScheduleChange, play } from '../services/schedule.ts';
+  } from '../services/playlist';
+  import { onChange as onScheduleChange, play } from '../services/schedule';
   import {
     speeds,
     torrentProgresses as torrentProgressesObservable,
-  } from '../services/webtorrent.ts';
+    seed,
+  } from '../services/webtorrent';
+
+  getDefultSongs().then((files) => {
+    files.forEach((file) => {
+      addFile(file);
+      seed(file.blob);
+    });
+  });
 
   let playlist: any = [];
   onPlaylistChange((newPlaylist) => {

@@ -9,10 +9,23 @@ const _client = new WebTorrent();
 
 const _cache: Record<string, Promise<{ magnetURI: string; blob: Blob }>> = {};
 
+// TODO: fix, there is no public api currently to resume a seed on a web client
+// https://github.com/webtorrent/webtorrent/issues/320#issuecomment-385317621
+// export const resumeSeeding = (blob: Blob, magnetURI: string) => {
+//   _client.add(magnetURI, (torrent: any) => {
+//     console.log('added magnet', magnetURI, torrent);
+//     torrent.load(blob.stream(), (err) => {
+//       err
+//         ? console.error('error while resuming seed', blob, magnetURI, err)
+//         : console.log('continue seeding', magnetURI, blob);
+//     });
+//   });
+// };
+
 export const seed = (blob: Blob) => {
-  console.log('seeding', blob);
   return new Promise((resolve) => {
     _client.seed(blob, async ({ magnetURI }: { magnetURI: string }) => {
+      console.log('seeding', magnetURI, blob);
       _cache[magnetURI] = Promise.resolve({ blob, magnetURI });
       resolve(blob);
     });
@@ -53,6 +66,11 @@ export const speeds = createObservableValue({
 
 export const torrentProgresses = createObservableValue([]);
 (window as any)._debug.torrentProgresses = torrentProgresses;
+
+setInterval(
+  () => console.log('_client.downloadSpeed', _client.downloadSpeed),
+  1000,
+);
 
 setInterval(() => {
   speeds.setValue({

@@ -21,7 +21,7 @@ function serve() {
       if (server) return;
       server = require('child_process').spawn(
         'npm',
-        ['run', 'start', '--', '--dev'],
+        ['run', 'start', '--', '--dev', '--host'],
         {
           stdio: ['ignore', 'inherit', 'inherit'],
           shell: true,
@@ -65,7 +65,7 @@ export default {
       dedupe: ['svelte'],
     }),
     commonjs(),
-    typescript({ sourceMap: !production }),
+    typescript({ sourceMap: !production, inlineSources: !production }),
 
     // In dev mode, call `npm run start` once
     // the bundle has been generated
